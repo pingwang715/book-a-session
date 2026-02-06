@@ -1,31 +1,39 @@
-import React, { ReactNode } from "react";
-
+import Button from "../UI/Button";
 
 type UpcomingSessionProps = {
-  id: string;
-  title: string;
-  summary: string;
-  date: string;
-}
+  session: {
+    id: string;
+    title: string;
+    summary: string;
+    date: string;
+  };
+  onCancel: () => void;
+};
 
 export default function UpcomingSession({
-    title,
-    summary,
-    date,
-
-  }: UpcomingSessionProps) {
+  session,
+  onCancel,
+}: UpcomingSessionProps) {
   return (
-    <div className="upcoming-session">
-      <h3>{title}</h3>
-      <p>{summary}</p>
-      <time dateTime={new Date(date).toISOString()}>
-        {new Date(date).toLocaleDateString('en-US', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        })}
-      </time>
-    </div>
-
+    <article className="upcoming-session">
+      <div>
+        <h3>{session.title}</h3>
+        <p>{session.summary}</p>
+        <time dateTime={new Date(session.date).toISOString()}>
+          {
+            new Date(session.date).toLocaleDateString('en-US', {
+              day: "numeric",
+              month: "short",
+              year: "numeric"
+            })
+          }
+        </time>
+      </div>
+      <p className="actions">
+        <Button textOnly onClick={onCancel}>
+          Cancel
+        </Button>
+      </p>
+    </article>
   );
 }

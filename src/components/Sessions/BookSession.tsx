@@ -1,43 +1,51 @@
-import Modal from "../UI/Modal.tsx";
-import React, { FormEvent, useRef } from "react";
+import Modal, { ModalHandle } from "../UI/Modal.tsx";
+import { FormEvent, useEffect, useRef } from "react";
 import Input from "../UI/Input.tsx";
+import { Session, useSessionsContext } from "../../store/sessions-context.tsx";
+import Button from "../UI/Button.tsx";
 
-type BookSessionData = {
-  name: string;
-  email: string;
-}
 type BookSessionProps = {
-  onClose?: () => void;
-  onSave: (value: BookSessionData) => void;
+  session: Session;
+  onDone: () => void; // onDone will "tell" the parent component that the BookSession component should be removed from the DOM
 }
 
-const BookSession = ({ onClose, onSave }: BookSessionProps) => {
+const BookSession = ({ session, onDone }: BookSessionProps) => {
+  const modal = useRef<ModalHandle>(null);
+  const sessionCtx = useSessionsContext();
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  // useEffect is used to open the Modal via its exposed `open` method when the component is mounted
+  useEffect(() => {
+    if (modal.current) {
+      modal.current.open();
+    }
+  }, []);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     // submission logic
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget)
-    const data = Object.fromEntries(formData) as BookSessionData;
-    onSave(data);
-    event.currentTarget.reset();
-    onClose?.(); // close modal after submission
+    const data = Object.fromEntries(formData)
+    console.log(data); // would normally be sent to a server, together with session data
+    sessionCtx.addSession(session);
+    onDone();
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {/* booking form */}
-      <div className="control">
-        <Input id="name" label="Name" type="string"></Input>
-        <Input id="email" label="Email" type="string"></Input>
-      </div>
-      <div className="actions">
-        <button type="button" className="button" onClick={onClose}>Cancel</button>
-        <button type="submit" className="button">Submit</button>
-      </div>
-    </form>
+    <Modal ref={modal} onClose={onDone}>
+      <h2>Book Session</h2>
+      <form onSubmit={handleSubmit}>
+        <Input label="Your name" id="name" name="name" type="text" />
+        <Input label="Your email" id="email" name="email" type="email"></Input>
+        <p className="actions">
+          <Button type="button" textOnly onClick={onDone}>
+            Cancel
+          </Button>
+          <Button>Book Session</Button>
+        </p>
+      </form>
+    </Modal>
   )
-
 }
 
 export default BookSession;

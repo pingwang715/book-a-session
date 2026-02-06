@@ -1,45 +1,51 @@
-import React, { ReactNode } from "react";
+import { useState } from "react";
 import Button from "../UI/Button.tsx";
-import { ModalRef } from "../UI/Modal.tsx";
-import Modal from "../UI/Modal.tsx";
-import { useRef } from "react";
 import UpcomingSessions from "../Sessions/UpcomingSessions.tsx";
-import { SESSIONS } from '../../dummy-sessions.ts'; // normally, we would probably load that from a server
 import { NavLink } from "react-router-dom";
 
-export type HeaderProps = {
-  children: ReactNode;
-}
-export default function Header(props: HeaderProps) {
-  const modalRef = useRef<ModalRef>(null);
+export default function Header() {
+  const [upcomingSessionsVisible, setUpcomingSessionsVisible] = useState(false);
+
+  function showUpcomingSessions() {
+    setUpcomingSessionsVisible(true);
+  }
+
+  function hideUpcomingSessions() {
+    setUpcomingSessionsVisible(false);
+  }
 
   return (
     <>
+      {upcomingSessionsVisible && (
+        <UpcomingSessions onClose={hideUpcomingSessions} />
+      )}
       <header id="main-header">
-        <div>
-          <h1>ReactMentoring</h1>
-        </div>
+        <h1>ReactMentoring</h1>
         <nav>
           <ul>
             <li>
-              <NavLink to="/" className={({isActive}) => isActive ? 'active' : ''} end>Our Mission</NavLink>
+              <NavLink
+                to="/"
+                className={({ isActive }) => (isActive ? "active" : "")}
+                end
+              >
+                Our Mission
+              </NavLink>
             </li>
             <li>
-              <NavLink to="/sessions" className={({isActive}) => isActive ? 'active' : ''}>Browse Sessions</NavLink>
+              <NavLink
+                to="/sessions"
+                className={({ isActive }) => (isActive ? "active" : "")}
+              >
+                Browse Sessions
+              </NavLink>
             </li>
             <li>
-              <Button onClick={() => modalRef.current?.open()}>Upcoming Sessions</Button>
-              <Modal ref={modalRef}>
-                <UpcomingSessions sessions={SESSIONS} onClose={() => modalRef.current?.close()}>
-
-                </UpcomingSessions>
-              </Modal>
+              <Button onClick={showUpcomingSessions}>Upcoming Sessions</Button>
             </li>
-
           </ul>
         </nav>
       </header>
-      {props.children};
     </>
-  )
+  );
 }

@@ -1,41 +1,40 @@
-import React, { ReactNode, forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { createPortal } from "react-dom";
 
-type ModalProps = {
-  children: ReactNode;
-}
-
-export type ModalRef = {
+// This type is used with `forwardRef` to ensure that the `Modal` component can be used with `useImperativeHandle` to expose a `open` method
+export type ModalHandle = {
   open: () => void;
-  close: () => void;
 }
 
-const Modal = forwardRef<ModalRef, ModalProps>(({children}, ref) => {
-  const dialogRef = useRef<HTMLDialogElement>(null);
+type ModalProps = {
+  children: React.ReactNode;
+  onClose: () => void; // The onClose function prop is used to propagate the default "close" event that can be triggered by <dialog> (for example, when the ESC key is pressed)
+}
 
-  useImperativeHandle(ref, () => ({
-    open: () => {
-      dialogRef.current?.showModal();
-    },
-    close: () => {
-      dialogRef.current?.close();
-    }
-  }));
+const Modal = forwardRef<ModalHandle, ModalProps>(function Modal (
+  { children, onClose },
+  ref
+) {
+  const dialog = useRef<HTMLDialogElement>(null);
 
-  const modalRoot = document.getElementById("modal-root");
+  // useImperativeHandle is used to expose the `open` method to other components
+  useImperativeHandle(ref, () => {
+    return {
+      open: () => {
+        if (dialog.current) {
+          dialog.current.showModal(); // showModal() is a built-in method available on the <dialog> element
+        }
+      },
+    };
+  });
 
-  if (!modalRoot) {
-    console.error("modal-root element not found");
-    return null;
-  }
-
+  // Below, the onClose prop is set on <dialog> to handle the case that the user closes the modal via a built-in mechanism (ESC key)
   return createPortal(
-    <dialog ref={dialogRef} className="modal">
+    <dialog ref={dialog} className="modal" onClose={onClose}>
       {children}
     </dialog>,
-    modalRoot
-  )
+    document.getElementById('modal-root')!
+  );
 });
 
-Modal.displayName = "Modal";
 export default Modal;

@@ -1,47 +1,51 @@
-import UpcomingSession from "./UpcomingSession";
-import { UpcomingSessionProps } from "./UpcomingSession";
 import Button from "../UI/Button";
-
-type UpcomingSessionData = {
-  id: string;
-  sessionId: string;
-  title: string;
-  summary: string;
-  date: string;
-  image: string;
-  userName: string;
-  userEmail: string;
-}
+import UpcomingSession from "./UpcomingSession";
+import {useEffect, useRef} from "react";
+import Modal, {type ModalHandle} from "../UI/Modal.tsx";
+import { useSessionsContext } from "../../store/sessions-context.tsx";
 
 type UpcomingSessionsProps = {
-  sessions: UpcomingSessionData[];
-  onClose: () => void;
+  onClose: () => void; // onClose is accepted to "tell" the parent component that the UpcomingSessions component should be removed from the DOM
 }
 
-export default function UpcomingSessions({sessions, onClose}: UpcomingSessionsProps) {
+export default function UpcomingSessions({onClose}: UpcomingSessionsProps) {
+  const modal = useRef<ModalHandle>(null);
+  const sessionsCtx = useSessionsContext();
+
+  console.log(sessionsCtx);
+
+  // useEffect is used to open the Modal via its exposed `open` method when the component is mounted
+  useEffect(() => {
+    if (modal.current) {
+      modal.current.open();
+    }
+  }, []);
+
+  function handleCancelSession(sessionId: string) {
+    sessionsCtx.cancelSession(sessionId);
+  }
+
+  const hasSessions = sessionsCtx.upComingSessions?.length > 0;
+
   return (
-    <div className="upcoming-sessions">
+    <Modal ref={modal} onClose={onClose}>
       <h2>Upcoming Sessions</h2>
-
-      {sessions.length === 0 ? (
-        <p>You haven't booked any sessions yet.</p>
-      ) : (
-        <article className="upcoming-sessions">
-          {sessions.map((session) => (
-            <div className="session-data" key={session.id}>
+      {hasSessions && (
+        <ul>
+          {sessionsCtx.upComingSessions.map((session) => (
+            <li key={session.id}>
               <UpcomingSession
-                id={session.id}
-                title={session.title}
-                summary={session.summary}
-                date={session.date}
-              >
-              </UpcomingSession>
-            </div>
+                session={session}
+                onCancel={() => handleCancelSession(session.id)}
+              />
+            </li>
           ))}
-        </article>
+        </ul>
       )}
-
-      <Button className="button" onClick={onClose}>Close</Button>
-    </div>
-  )
+      {!hasSessions && <p>No upcoming sessions.</p>}
+      <p className="actions">
+        <Button onClick={onClose}>Close</Button>
+      </p>
+    </Modal>
+  );
 }

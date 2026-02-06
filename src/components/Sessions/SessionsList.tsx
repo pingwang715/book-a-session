@@ -1,19 +1,22 @@
-import { SESSIONS } from '../../dummy-sessions.ts';
 import SessionItem from './SessionItem.tsx';
 
-export default function SessionsList() {
+type SessionsListProps = {
+  sessions: {
+    id: string;
+    title: string;
+    summary: string;
+    image: string;
+  }[];
+};
+
+export default function SessionsList({sessions}: SessionsListProps) {
   return (
-    <div id="sessions-list">
-      {SESSIONS.map(session => (
-        <SessionItem
-          key={session.id}
-          id={session.id}
-          title={session.title}
-          summary={session.summary}
-          image={session.image}
-          date={session.date}
-        />
+    <ul id="sessions-list">
+      {sessions.map((session) => (
+        <li key={session.id}>
+          <SessionItem {...session}></SessionItem>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
